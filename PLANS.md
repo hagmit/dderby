@@ -182,3 +182,11 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - MV-4: NOT_STARTED — 独立常駐capture worker。本番cloudへは適用しない。
 - 永続キュー・再開位置・失敗理由はsibling outputs/observation-ledger/processing-queue.json。
 - 初回並行バッチは登録完了。以後はhourly heartbeatからキューの再開位置へ進む（継続運用としてIN_PROGRESS）。
+
+## Single Video Deep Test（追加スコープ）
+- SV-1: COMPLETED — FQ6S0vUh_NMを62地点サンプリング、馬情報/odds/結果を重点取得。
+- SV-2: COMPLETED — 新規9区間候補の部分観測を追記、名前不明panelと事前betを独立保存。
+- SV-3: COMPLETED — 18ゲージの画素推定と座標/閾値/測定履歴を保存（単一frame、未校正）。
+- SV-4: COMPLETED — 画像hash、冪等再登録追加0、SQLite整合性、lint/type/unit 10件を確認。
+- SV-5: NOT_STARTED — 視点補正・複数frame校正・完全なレースidentity・画面検出精度の評価。
+- 成果と制約: docs/SINGLE_VIDEO_TEST.md。本番Phase完了や連続全フレーム解析とは区別する。

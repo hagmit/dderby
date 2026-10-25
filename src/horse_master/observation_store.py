@@ -91,7 +91,8 @@ def ingest(db: sqlite3.Connection, payload: dict[str, Any], manifest: dict[str, 
         appearance = digest([SERIES, video_id, payload["candidate_race_id"], number])
         name = horse["horse_name"]["value"]
         visit(horse, f"horses[{number}]", appearance, name)
-    for key in ("course", "distance", "confirmed_result_observation"):
+    for key in ("course", "distance", "confirmed_result_observation", "race_observations",
+                "bet_observations", "unassigned_horse_panels"):
         if key in payload:
             visit(payload[key], key, None, None)
     with db:

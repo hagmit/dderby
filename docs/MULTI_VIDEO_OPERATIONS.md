@@ -15,6 +15,7 @@
 状態は sibling outputs/observation-ledger/processing-queue.json、DBはobservations.sqlite3。
 証跡はevidence/{video_id}-{batch_id}/へ追記。画像hash・時刻・confidence・NULL理由を必須とする。
 指定時刻と実停止時刻を区別し、広告・buffer・画角欠損を検出/記録する。
+captureの前後で実watch URLのvideo IDと対象を照合する。別動画へ変わっていれば保存を中止し、専用タブで再確認する。
 実取得した区間、再開位置、限定retry、失敗/ブロッカー理由を毎回キューへ保存する。
 未処理動画が不足したら同投稿者の動画一覧からタイトル/画面で本シリーズと確認できる公開動画を候補追加する。
 各候補のURL・表示投稿者・シリーズ確認根拠を残し、確認前はpermission pendingで解析しない。

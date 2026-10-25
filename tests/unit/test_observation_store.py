@@ -72,6 +72,26 @@ def test_later_visible_attribute_preserves_original_missing_value(tmp_path: Path
     assert speed["values"] == [{"value": 0.7, "appearance_count": 1}]
 
 
+def test_unassigned_status_and_pre_race_bets_are_retained_without_horse_link(
+    tmp_path: Path,
+) -> None:
+    db = connect(tmp_path / "observations.sqlite3")
+    payload, manifest = sample()
+    observed = {"value": "E", "confidence": 0.9, "source_frame_ids": ["video1-frame"],
+                "error_reason": None}
+    payload["unassigned_horse_panels"] = [{"rank": observed}]
+    payload["bet_observations"] = [{"odds": {**observed, "value": 12.3}}]
+    payload["race_observations"] = {"displayed_class": {**observed, "value": "GII"}}
+    ingest(db, payload, manifest)
+    rows = db.execute("SELECT candidate_name,appearance_id FROM observations "
+                      "WHERE field_path LIKE 'unassigned_horse_panels%' "
+                      "OR field_path LIKE 'bet_observations%' "
+                      "OR field_path LIKE 'race_observations%'").fetchall()
+    assert len(rows) == 3
+    assert all(row["candidate_name"] is None and row["appearance_id"] is None for row in rows)
+    assert ingest(db, payload, manifest) == 0
+
+
 def test_new_appearances_compare_without_overwriting_and_dynamic_odds_are_not_fixed(
     tmp_path: Path,
 ) -> None:

@@ -31,3 +31,8 @@ ruff成功、mypy strictは12 source files成功、pytestは9 passed（後日読
 hourly解析heartbeat（automation）と9時JSTの日次保存報告（db）をACTIVEで作成。
 seedの既存証跡追加読取と別動画fwAHVINOS0Aのブラウザ取得を担当別に並行実行。
 各packetを親がSQLiteへ直列登録し、SHA256重複排除の画像数・件数とCSVを再出力。
+
+2026-10-26 JST: 1本集中テストを実行。FQ6S0vUh_NMを62地点取得し、9区間候補を追記。
+新規715項目（非NULL279、NULL436）、新しい馬名候補12頭、画素ゲージ測定18件。
+画像hash/source参照、再登録追加0、DB integrity ok。ruff/mypy/unit 10件成功。
+完全レースとしては採用せず、全区間を部分観測として保持した。

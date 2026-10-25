@@ -36,3 +36,5 @@ Raw observation ID は video/frame/ROI/processing_version の決定的ハッシ�
 - 派生summaryは再作成可能。項目状態はNOT_OBSERVED / SINGLE_APPEARANCE / REPEATED_CONSISTENT / CONFLICT。
 - fixed_statusはUNVERIFIEDまたはCONFLICTのみ。未校正confidenceからFIXEDを生成しない。
 - rank/sex/style/gaugeを比較候補とし、odds/condition/結果は動的観測として保持する。
+- race_observations / bet_observations / unassigned_horse_panelsを項目観測として保存。未割当値を馬番/馬名候補へ推測結合しない。
+- *_gauge_measurementはROIと画素測定履歴。*_fill_ratioは未校正推定の場合があり、確定能力値と区別する。
