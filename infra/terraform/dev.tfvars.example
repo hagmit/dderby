@@ -1,0 +1,4 @@
+project_id  = "replace-with-dev-project"
+environment = "dev"
+enable_jobs = false
+scheduler_paused = true

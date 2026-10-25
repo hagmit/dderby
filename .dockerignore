@@ -1,0 +1,8 @@
+.git
+.venv
+.env*
+infra
+tests
+__pycache__
+*.tfstate*
+*.tfvars

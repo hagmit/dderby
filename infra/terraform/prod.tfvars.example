@@ -1,0 +1,4 @@
+project_id       = "replace-with-prod-project"
+environment      = "prod"
+enable_jobs      = false
+scheduler_paused = true
