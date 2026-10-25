@@ -26,3 +26,8 @@
 元pilot JSON/画像は不変。読み直しを独立出現として数えない。
 ruff成功、mypy strictは12 source files成功、pytestは9 passed（後日読取でも元NULLを保持する検証を含む）。
 実データ同一入力の再実行でinserted_rows=0を確認。本番BigQueryは未稼働。
+
+2026-10-26 JST: 複数動画の並行処理と日次報告を追加承認。
+hourly解析heartbeat（automation）と9時JSTの日次保存報告（db）をACTIVEで作成。
+seedの既存証跡追加読取と別動画fwAHVINOS0Aのブラウザ取得を担当別に並行実行。
+各packetを親がSQLiteへ直列登録し、SHA256重複排除の画像数・件数とCSVを再出力。

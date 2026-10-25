@@ -174,3 +174,11 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - PO-6: NOT_STARTED — capture workerとの自動接続、race identity/名寄せ解決、本番BigQuery移行。
 - Phase 10/11本番ロードマップ全体は未完了。今回の局所実装とは区別する。
 - ローカル保存先: sibling outputs/observation-ledger。手順: docs/PARTIAL_OBSERVATIONS.md。
+
+## Multi Video Operation（追加スコープ）
+- MV-1: COMPLETED — 解析再開用hourly heartbeatと日本時間9時の日次保存状況報告を設定。
+- MV-2: IN_PROGRESS — 動画別担当による並行解析。初回は新動画fwAHVINOS0Aと既存FQ6S0vUh_NM証跡の未読項目検証。
+- MV-3: IN_PROGRESS — 部分観測packetを動画別保存し、親がSQLiteへ直列に冪等登録。
+- MV-4: NOT_STARTED — 独立常駐capture worker。本番cloudへは適用しない。
+- 永続キュー・再開位置・失敗理由はsibling outputs/observation-ledger/processing-queue.json。
+- 初回並行バッチは登録完了。以後はhourly heartbeatからキューの再開位置へ進む（継続運用としてIN_PROGRESS）。
