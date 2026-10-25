@@ -21,3 +21,8 @@
 本番ロードマップは完了扱いにせず、PLANS.md に独立した Browser Pilot として記録。
 検証: crop画像5枚の SHA256、source reference、confidence 範囲、NULL理由、除外判定、着順整合性を確認。
 既存 ruff/mypy（11 source files）/pytest（2 passed）と git diff --check は成功。
+
+2026-10-26 JST: 部分観測ledgerを追加。既存pilotと4番の追加属性読取をSQLiteに追記保存。
+元pilot JSON/画像は不変。読み直しを独立出現として数えない。
+ruff成功、mypy strictは12 source files成功、pytestは9 passed（後日読取でも元NULLを保持する検証を含む）。
+実データ同一入力の再実行でinserted_rows=0を確認。本番BigQueryは未稼働。

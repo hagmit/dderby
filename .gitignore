@@ -24,3 +24,5 @@ crash.log
 *.mp4
 *.mkv
 *.webm
+*.sqlite3
+*.sqlite3-*

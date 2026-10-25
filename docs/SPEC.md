@@ -16,3 +16,11 @@ Golden 正解を改善目的で変更しない。原文の全項目・研究課�
 ## 初回の境界
 本コミットは bootstrap と infrastructure scaffold。動画取得、OCR、モデル、Sheets 出力は未実装。
 CLI は readiness 診断のみで、本番 worker として動作しない。
+
+## 部分観測の先行蓄積（追加要件）
+レース完成を待たず、部分観測と欠測理由を先に観測DBへ保存する。
+ANALYSIS_EXCLUDEDは分析利用の判定であり、元観測の保存拒否ではない。
+同名馬候補の再出現時に項目単位で比較し、既存値やNULLを上書きしない。
+馬名不明は動画内の局所出現として保持。同一出現の隣接画像・再処理は出現数に加算しない。
+現在の無料ローカル蓄積はSQLite、本番System of Recordは引き続き将来のBigQuery。
+詳細とCLIはPARTIAL_OBSERVATIONS.md。継続収集・自動名寄せ・FIXED昇格は未実装。

@@ -150,6 +150,8 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - Docker/ffmpeg/gcloud/OpenCV は初期環境にない。Phase 4〜5 前に導入/コンテナ検証する。
 
 ## 次の作業
+部分観測の先行蓄積を通常手順に追加済み。新しい画像読取は観測DBへ先に登録し、
+同名候補と項目ごとに比較する。読めない箇所はNULL、分析除外でも元観測は保持する。
 ブラウザ検証の次: player 領域・時刻・読み込み完了を安定確認する capture adapter と画面検出を実装し、
 未編集または情報がそろう映像で複数フレームの抽出精度を評価する。課金登録はこの検証の前提ではない。
 クラウド運用を選択した時点で Phase 2 の dev plan を確認し、その後 Phase 3 へ進む。
@@ -162,3 +164,13 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - 今回はエージェントによる単発ブラウザ操作/画像読取。継続収集 worker や精度評価の完成ではない。
 - 元 screenshot はローカル work/browser-pilot、動画領域のみの画像/JSON/レポートは sibling outputs/browser-pilot-FQ6S0vUh_NM-001。
 - 実測内容と制約は docs/BROWSER_PILOT.md。GCP/Billing 設定・動画ファイル取得・クラウドAPI呼出は未実施。
+
+## Partial Observation Ledger（追加スコープ）
+- PO-1: COMPLETED — 設計と既存実装を確認。旧実装はJSON保存まででDB未実装と判明。
+- PO-2: COMPLETED — SQLite追記専用DB、内容hashによる冪等登録、欠測/根拠/品質除外の保存。
+- PO-3: COMPLETED — 完全一致名候補の項目別比較。同一出現の複数frame・再処理を重複計数しない。
+- PO-4: COMPLETED — 既存pilotを登録、画像/JSONを証跡として保管し、4番の見える属性を別観測で追加。
+- PO-5: COMPLETED — 部分保存・再実行・再出現一致/矛盾・許諾/series/根拠拒否を単体検証。
+- PO-6: NOT_STARTED — capture workerとの自動接続、race identity/名寄せ解決、本番BigQuery移行。
+- Phase 10/11本番ロードマップ全体は未完了。今回の局所実装とは区別する。
+- ローカル保存先: sibling outputs/observation-ledger。手順: docs/PARTIAL_OBSERVATIONS.md。

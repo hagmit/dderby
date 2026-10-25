@@ -26,3 +26,13 @@ horse fixed_status: UNVERIFIED / PROVISIONALLY_FIXED / FIXED / CONFLICT。
 BigQuery は一意制約を強制しないため staging + MERGE と job key/version で冪等化する。
 Raw observation ID は video/frame/ROI/processing_version の決定的ハッシュとする。
 初回は warehouse schema の設計のみ。物理 schema と MERGE は Phase 11 で実装・検証。
+
+## 実装済みローカル観測DB
+- imports: immutable payload/manifest、series/video、content hashのimport_id、created_at。
+- observations: field_path/name、nullable value、confidence、欠測理由、根拠frame metadata、appearance_id、candidate_name。
+- appearance_id: series/video/candidate_race/horse_number。frame数・処理版を独立出現として数えない。
+- candidate_name: 表示名完全一致の候補。名前不明はNULL。馬番はglobal horse_idではない。
+- 元観測はUPDATE/DELETE triggerで保護。訂正・追加読取は別import、同一入力は重複登録しない。
+- 派生summaryは再作成可能。項目状態はNOT_OBSERVED / SINGLE_APPEARANCE / REPEATED_CONSISTENT / CONFLICT。
+- fixed_statusはUNVERIFIEDまたはCONFLICTのみ。未校正confidenceからFIXEDを生成しない。
+- rank/sex/style/gaugeを比較候補とし、odds/condition/結果は動的観測として保持する。

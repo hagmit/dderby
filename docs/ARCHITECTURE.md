@@ -40,3 +40,9 @@ enable_jobs=false / scheduler_paused=true が既定。bootstrap CLI を解析 Jo
 - https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloud_scheduler_job
 - https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloud_run_v2_job
 Scheduler の Run API 呼び出しには OAuth token を使用する。
+
+## 課金なしの部分観測蓄積ルート
+Browser screenshots → immutable evidence archive → SQLite imports/observations
+→ 項目単位の候補比較summary → 将来のHorse Master / BigQuery migration。
+品質除外判定は分析利用に適用し、観測保存前の全件棄却には使わない。
+ローカルDBとevidenceを一緒に保管する。本番cloud pipelineは未稼働。
