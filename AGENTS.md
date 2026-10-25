@@ -11,3 +11,4 @@
 - PLANS.md が進捗の Source of Truth。状態は NOT_STARTED / IN_PROGRESS / COMPLETED / BLOCKED。
 - 課金・認証・本番適用・削除・大幅な IAM 変更を自動実行しない。
 - 初回スコープは Phase 0、1、2 の設計と Terraform scaffold。後続を先取りしない。
+- 追加承認（2026-10-26）: GCP の完了を待たず、指定動画1本のブラウザ screenshot 検証を実施できる。これは各本番 Phase の完了とは区別する。

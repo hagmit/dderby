@@ -2,7 +2,9 @@
 
 2026-10-26 JST。リポジトリ: hagmit/dderby。初回スコープ: Phase 0、1、2 の設計/scaffold。
 
-Phase 2 の実環境 plan が通るまで Phase 3 に進まない。scaffold の完成と Phase 完了を区別する。
+本番ロードマップは Phase 2 の実環境 plan が通るまで Phase 3 に進まない。
+2026-10-26 のユーザー追加承認により、課金なしのブラウザ検証を独立して先行する。
+scaffold/単発検証の完成と本番 Phase 完了を区別する。
 
 | Phase | 名称 | 状態 | Done 条件 |
 |---|---|---|---|
@@ -148,4 +150,15 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - Docker/ffmpeg/gcloud/OpenCV は初期環境にない。Phase 4〜5 前に導入/コンテナ検証する。
 
 ## 次の作業
-Phase 2: dev の実環境 plan をレビューし Done 条件を満たす。その後 Phase 3。
+ブラウザ検証の次: player 領域・時刻・読み込み完了を安定確認する capture adapter と画面検出を実装し、
+未編集または情報がそろう映像で複数フレームの抽出精度を評価する。課金登録はこの検証の前提ではない。
+クラウド運用を選択した時点で Phase 2 の dev plan を確認し、その後 Phase 3 へ進む。
+
+## Browser Pilot（追加スコープ）
+- BP-1: COMPLETED — FQ6S0vUh_NM を Chrome で再生・停止・時刻移動し screenshot を取得。
+- BP-2: COMPLETED — 馬名/odds/確定結果の一部を screenshot から読み取り、confidence と provenance を保存。
+- BP-3: COMPLETED — 不完全な出走表・race identity の不足により ANALYSIS_EXCLUDED と判定。
+- BP-4: NOT_STARTED — 再利用可能な自動 capture adapter、画面状態検出、OCR eval を実装。
+- 今回はエージェントによる単発ブラウザ操作/画像読取。継続収集 worker や精度評価の完成ではない。
+- 元 screenshot はローカル work/browser-pilot、動画領域のみの画像/JSON/レポートは sibling outputs/browser-pilot-FQ6S0vUh_NM-001。
+- 実測内容と制約は docs/BROWSER_PILOT.md。GCP/Billing 設定・動画ファイル取得・クラウドAPI呼出は未実施。

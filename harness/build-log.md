@@ -14,3 +14,10 @@
   不正 environment/可変 tag/画像未指定の拒否を確認。
 - 実環境の terraform plan/apply は未実行。GCP 認証・project/Billing/IAM/API は BLOCKED。
 - Docker build、ffmpeg、OpenCV、実動画解析は未実行。初回スコープ外の worker は未実装。
+
+2026-10-26 JST（追加依頼）: 公開 YouTube 動画を Chrome 上で操作し screenshot pilot を実施。
+2:20/2:33 の odds/馬名部分、3:14/3:19 の確定表を取得。
+部分観測を JSON と画像 manifest に記録。必須項目と race identity が不足するため ANALYSIS_EXCLUDED。
+本番ロードマップは完了扱いにせず、PLANS.md に独立した Browser Pilot として記録。
+検証: crop画像5枚の SHA256、source reference、confidence 範囲、NULL理由、除外判定、着順整合性を確認。
+既存 ruff/mypy（11 source files）/pytest（2 passed）と git diff --check は成功。
