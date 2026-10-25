@@ -190,3 +190,11 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - SV-4: COMPLETED — 画像hash、冪等再登録追加0、SQLite整合性、lint/type/unit 10件を確認。
 - SV-5: NOT_STARTED — 視点補正・複数frame校正・完全なレースidentity・画面検出精度の評価。
 - 成果と制約: docs/SINGLE_VIDEO_TEST.md。本番Phase完了や連続全フレーム解析とは区別する。
+
+## Additional Video Deep Sampling（追加スコープ）
+- AV-1: COMPLETED — 同投稿者の公開r7Bl-CnZ9gs / oo5qvMZKkXwをブラウザで確認。
+- AV-2: IN_PROGRESS — r7は64地点を保管、8区間候補の馬属性・馬連odds・部分結果・27ゲージ測定履歴を追記。未読画像と出走枠欠測が残る。
+- AV-3: BLOCKED — ooは135秒の1枚と部分払戻を保存。ブラウザ取得タイムアウトと担当agent使用上限により高密度取得未達。次回45秒からbounded retry。
+- AV-4: COMPLETED — 今回9packetの再登録追加0、画像SHA確認、DB整合性ok、unit10件/lint/type成功。
+- 保存状況: 4動画、22imports、1580項目（既知591/NULL989）、馬名候補24、SHA重複排除画像134。項目数は独立事実数ではない。
+- 詳細と実再開点はsibling observation-ledger/evidence/*-deep001 とprocessing-queue.json。連続区間の完了は宣言しない。
