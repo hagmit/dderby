@@ -2,11 +2,13 @@
 import argparse
 import csv
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
 
 from horse_master.observation_store import summarize
+from horse_master.verified_races import progress
 
 
 def main() -> None:
@@ -19,6 +21,7 @@ def main() -> None:
         db.row_factory = sqlite3.Row
         summary = summarize(db)
         integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+        race_progress = progress(db)
         video_count = db.execute("SELECT COUNT(DISTINCT video_id) FROM imports").fetchone()[0]
         known = db.execute("SELECT COUNT(*) FROM observations WHERE value_json!='null'").fetchone()[0]
         hashes = set()
@@ -37,6 +40,11 @@ def main() -> None:
                              "field", "value_json", "confidence_uncalibrated", "error_reason",
                              "source_frames"])
             writer.writerows(rows)
+    preserved_hashes = {
+        hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in (root / "evidence").rglob("*")
+        if path.is_file() and path.suffix.lower() in {".png", ".jpg", ".jpeg"}
+    }
     (root / "verification-summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2)+"\n", encoding="utf-8"
     )
@@ -48,7 +56,12 @@ def main() -> None:
         "missing_field_observation_count": len(rows)-known,
         "candidate_horse_count": len(summary["candidate_horses"]),
         "unique_image_count": len(hashes), "integrity_check": integrity,
-        "note": "Field counts include NULL and rereads; image counts deduplicate SHA256.",
+        "preserved_evidence_image_count": len(preserved_hashes),
+        "validated_unique_race_count": race_progress["validated_unique_race_count"],
+        "race_target": race_progress["target"],
+        "note": "Field counts include NULL and rereads. unique_image_count is observation-import "
+                "images; preserved_evidence_image_count includes audit/human/verified evidence. "
+                "Both image counts deduplicate SHA256. Races count only verified_races.",
     }
     (root / "storage-status.json").write_text(
         json.dumps(status, ensure_ascii=False, indent=2)+"\n", encoding="utf-8"
@@ -57,12 +70,16 @@ def main() -> None:
 
 最新状態: {status['at']}（UTC）。対象動画 {video_count} 本、入力 {summary['import_count']} 件、
 項目観測 {len(rows)} 件（NULL・再読取を含む）。馬名候補 {len(summary['candidate_horses'])} 頭。
-重複画像をSHA256で除いた証跡画像 {len(hashes)} 枚。DB整合性: {integrity}。
+SHA256で重複除外した保存証跡画像 {len(preserved_hashes)} 枚
+（うち部分観測importsから参照 {len(hashes)} 枚）。DB整合性: {integrity}。
+検証済みレース {race_progress['validated_unique_race_count']} / {race_progress['target']}。
+候補区間や項目数はレース数に含めません。
 
 - observations.sqlite3: 追記専用のローカル観測DB。
 - observations.csv: 閲覧用。独立出現数・確定事実数とは異なります。
 - verification-summary.json: 名前完全一致候補の項目ごとの一致・矛盾比較。
 - storage-status.json: 件数スナップショット。
+- race-progress.json: 検証済みレースの進捗。DBのverified_racesが実件数の根拠。
 - evidence/: 元画像・JSON・manifestを不変で保管。新しい読取は別packetとして追加。
 - processing-queue.json: 動画ごとの実取得時刻・再開位置・失敗/待機状態。
 
