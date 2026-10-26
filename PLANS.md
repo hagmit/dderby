@@ -198,3 +198,11 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - AV-4: COMPLETED — 今回9packetの再登録追加0、画像SHA確認、DB整合性ok、unit10件/lint/type成功。
 - 保存状況: 4動画、22imports、1580項目（既知591/NULL989）、馬名候補24、SHA重複排除画像134。項目数は独立事実数ではない。
 - 詳細と実再開点はsibling observation-ledger/evidence/*-deep001 とprocessing-queue.json。連続区間の完了は宣言しない。
+
+## 500 Race Collection（追加スコープ）
+- R500-1: IN_PROGRESS — 5動画・52importsをレース単位で監査。41候補、明示着順あり10候補、BET→RESULT対応検証済みは0。したがって現時点は0/500。
+- R500-2: IN_PROGRESS — 最優先はFQ6S0vUh_NMの545–605秒、665–722秒、420–470秒。6頭の事前oddsと明示着順があり、時刻・区間対応の追加実証を行う。
+- R500-3: IN_PROGRESS — 他投稿者2チャンネルを許諾確認候補として提示済み。許諾はユーザー取得待ち。許諾済みソースは継続する。
+- R500-4: BLOCKED — IY1rJk8HJtEの投稿者/シリーズは確認したが、停止72秒でスクショ取得2回タイムアウト。画像・項目の追加0。先行動画の完成度監査へ切替。
+- 監査詳細はsibling observation-ledger/race-readiness-audit.json/.md、進捗はrace-progress.json。部分観測DBは保持し、本番Phase9の完成とは区別する。
+- 旧AV-3の使用上限停止は解消済み。oo5qvMZKkXwの再開証跡は保存・登録済み。旧記載は当時の履歴で、現在の再開状態はprocessing-queue.jsonを正とする。
