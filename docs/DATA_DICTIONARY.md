@@ -15,6 +15,7 @@ BigQuery が System of Record。Sheets は派生表示のみ。
 | model_results | model_version + evaluation_window | logloss, Brier, calibration, hit/ROI/drawdown/streak/bets/skip |
 
 ## 共通規約
+性別は元記号♂/♀を保持し、表示名をオス/メスとする。「牡/牝」は表示名として使用しない。
 全レコードに created_at/updated_at（UTC）。派生レコードは video_id/timestamp/frame_id または複数の source_refs、
 detector_version/ocr_version/normalization_version/model_version を保持。Raw と Derived を分離する。
 認識 field は value（nullable）、confidence [0,1]、error_reason、source_refs を持つ。
