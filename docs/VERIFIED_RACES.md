@@ -23,3 +23,9 @@ verified_racesとverified_race_imagesはUPDATE/DELETEを拒否する。
 `progress(db)`はverified_racesの実件数だけを返し、部分データや候補数を足さない。
 SQLite整合性、同一入力再登録追加0、未知/誤参照/未許諾/時刻不明/着順不整合/重複拒否を確認する。
 これはローカル研究用で、本番Phase9全体の完成や500件達成を意味しない。
+
+レビュー記録をregistry形式へ構造化した後、CLIでも登録できる。
+```powershell
+python -m horse_master.verified_races --database ../observation-ledger/observations.sqlite3 --record <registry.json> --manifest <registry-manifest.json>
+```
+manifestのimage_pathはmanifestファイルから相対。再実行はinserted=falseとなる。

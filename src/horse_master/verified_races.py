@@ -1,7 +1,9 @@
 """Local evidence-backed race registry, separate from partial observations."""
 from __future__ import annotations
 
+import argparse
 import hashlib
+import json
 from pathlib import Path
 import sqlite3
 from typing import Any
@@ -144,3 +146,22 @@ def progress(db: sqlite3.Connection, target: int = 500) -> dict[str, Any]:
     return {"target": target, "validated_unique_race_count": count,
             "remaining": max(0, target - count),
             "scope": "Evidence-reviewed races within collected permitted sources"}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--database", type=Path, required=True)
+    parser.add_argument("--record", type=Path, required=True)
+    parser.add_argument("--manifest", type=Path, required=True)
+    args = parser.parse_args()
+    record = json.loads(args.record.read_text(encoding="utf-8"))
+    manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+    with sqlite3.connect(args.database) as db:
+        inserted = register(db, record, manifest, args.manifest.parent)
+        if db.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise ValueError("Database integrity check failed")
+        print(json.dumps({"inserted": inserted, **progress(db)}, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
