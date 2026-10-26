@@ -200,10 +200,12 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - 詳細と実再開点はsibling observation-ledger/evidence/*-deep001 とprocessing-queue.json。連続区間の完了は宣言しない。
 
 ## 500 Race Collection（追加スコープ）
-- R500-1: IN_PROGRESS — 初回監査は41候補/0件。その後の独立画像レビューで545–605/665–722の対応を複数根拠から確認し、verified_racesへ2件登録。現在2/500。部分観測52importsはそのまま保持。
+- R500-1: IN_PROGRESS — 初回監査は41候補/0件。独立画像レビューでFQの2件、実払戻票の厳密導出でr7の1件を登録し現在3/500。部分観測53importsはそのまま保持。
 - R500-2: IN_PROGRESS — 次はFQ6S0vUh_NMの420–470秒。最初の2件は馬番/馬名、複数odds、購入票→払戻票、station/credit/背景を照合。元動画が無編集という保証はしない。
 - R500-3: IN_PROGRESS — 他投稿者2チャンネルを許諾確認候補として提示済み。許諾はユーザー取得待ち。許諾済みソースは継続する。
 - R500-4: BLOCKED — IY1rJk8HJtEの投稿者/シリーズは確認したが、停止72秒でスクショ取得2回タイムアウト。画像・項目の追加0。先行動画の完成度監査へ切替。
 - 監査詳細はsibling observation-ledger/race-readiness-audit.json/.md、進捗はrace-progress.json。部分観測DBは保持し、本番Phase9の完成とは区別する。
 - 旧AV-3の使用上限停止は解消済み。oo5qvMZKkXwの再開証跡は保存・登録済み。旧記載は当時の履歴で、現在の再開状態はprocessing-queue.jsonを正とする。
 - R500-5: COMPLETED — 局所verified registry、SHA/時計/6頭/odds/位相/結果/複数根拠/重複拒否/追記専用を実装。19unit、lint/type、実画像2件登録/再登録0/DB整合性okを確認。仕様はdocs/VERIFIED_RACES.md。500件の収集と本番Phase9全体は未完了。
+- R500-6: COMPLETED — 同一実払戻パネルの単勝+馬連から着順を一意に導出する型を追加。WIN CHANCE/未払戻/選択不整合/根拠不足を拒否。24unit/lint/type成功。r7の295–335秒を2→4として追加し、現在3/500、再登録追加0、DB整合性ok。
+- R500-7: BLOCKED — 残り497件は追加画面取得が必要。ブラウザURLを安全に確認できずComputer Useが停止し、複数のgoal継続でも復旧なし。保存済みqnf/r7/OOの完成度監査と取り込み可能な候補の処理を実施済み。ユーザーによるブラウザ接続復旧が必要。他投稿者は許諾確認待ち。未完了を達成扱いにしない。

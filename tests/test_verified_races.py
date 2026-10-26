@@ -76,3 +76,31 @@ def test_registry_rejects_unproven_races(tmp_path, problem):
     with pytest.raises(ValueError):
         register(db, record, manifest, tmp_path)
     assert progress(db)["validated_unique_race_count"] == 0
+
+
+@pytest.mark.parametrize("problem", [None, "potential", "unpaid", "wrong_pair", "no_derivation"])
+def test_paid_win_and_quinella_require_exact_observed_proof(tmp_path, problem):
+    db, record, manifest = fixture(tmp_path)
+    def field(value):
+        return {"value": value, "confidence": .95, "source_frame_ids": ["result"]}
+    record["result"].update({"evidence_kind": "PAID_WIN_PLUS_QUINELLA",
+                             "derivation": "Paid win1 proves first1; paid pair1-2 proves second2.",
+                             "paid_tickets": {}})
+    for kind, selection in [("win", [1]), ("quinella", [1, 2])]:
+        record["result"]["paid_tickets"][kind] = {
+            "display_kind": field("WINNING TICKET"), "bet_type": field(kind),
+            "selection": field(selection), "paid_medals": field(100)}
+    if problem == "potential":
+        record["result"]["paid_tickets"]["win"]["display_kind"]["value"] = "WIN CHANCE"
+    elif problem == "unpaid":
+        record["result"]["paid_tickets"]["win"]["paid_medals"]["value"] = 0
+    elif problem == "wrong_pair":
+        record["result"]["paid_tickets"]["quinella"]["selection"]["value"] = [1, 3]
+    elif problem == "no_derivation":
+        record["result"]["derivation"] = ""
+    if problem is None:
+        assert register(db, record, manifest, tmp_path)
+    else:
+        with pytest.raises(ValueError):
+            register(db, record, manifest, tmp_path)
+        assert progress(db)["validated_unique_race_count"] == 0

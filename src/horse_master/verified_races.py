@@ -69,6 +69,29 @@ def register(
             record["confirmed_result_frame_ids"]
         ):
             raise ValueError("Result references a non-result frame")
+    # Two paid tickets on the same result panel can prove an ordered pair exactly:
+    # a winning single identifies first place; a winning quinella identifies both.
+    # This path must preserve the raw ticket facts and the explicit derivation.
+    if record["result"].get("evidence_kind") == "PAID_WIN_PLUS_QUINELLA":
+        tickets = record["result"]["paid_tickets"]
+        common = set(record["confirmed_result_frame_ids"])
+        for kind in ["win", "quinella"]:
+            ticket = tickets[kind]
+            if field(ticket["display_kind"]) != "WINNING TICKET":
+                raise ValueError("Potential WIN CHANCE is not a paid result")
+            if field(ticket["bet_type"]) != kind:
+                raise ValueError("Paid ticket type mismatch")
+            paid = field(ticket["paid_medals"])
+            if isinstance(paid, bool) or not isinstance(paid, (int, float)) or paid <= 0:
+                raise ValueError("Ticket must have positive actual payout")
+            for key in ["display_kind", "bet_type", "selection", "paid_medals"]:
+                common &= set(ticket[key]["source_frame_ids"])
+        win_selection = field(tickets["win"]["selection"])
+        pair = field(tickets["quinella"]["selection"])
+        if win_selection != [first] or sorted(pair) != sorted([first, second]):
+            raise ValueError("Paid tickets do not prove recorded order")
+        if not common or not record["result"].get("derivation"):
+            raise ValueError("Paid facts need common result panel and derivation")
     linkage = record["linkage"]
     if linkage.get("status") != "VERIFIED" or not linkage.get("reviewer"):
         raise ValueError("BET to RESULT link not reviewed")
