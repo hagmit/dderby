@@ -220,3 +220,9 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - MV-7: IN_PROGRESS — fwAHVINOS0Aを全長の56地点＋重点12地点で取得し、前後半を2担当で並列レビュー。18packet/603項目を先行保存、同入力再登録0・DB整合性ok。440–480秒は明示結果と馬単odds一致を確認したが、6頭事前単勝盤が画角外で437–441秒の精査でも不足、HOLD。結果のみの720/800/820等は別候補に保持し、完成5/500を増やさない。Tab.screenshotのtimeout時、URL照合可能な同一タブの文書化されたTab.getScreenshotで画面・時計を確認し取得成功。別投稿者kodomoyoのExpo2025版1本を一次metadata確認し許諾pending登録、再生解析は未着手。クラウド引継ぎ一式はローカル準備済み、宛先確認/転送/切替は未完了。
 
 - PO-7: COMPLETED — 性別の比較summaryで♂/オス・♀/メスだけを同義として正規化。原DB/payload/SHA・出現キーは保持し、summaryに元表記と正規化版を明記。従来の性別表記差7件を矛盾から除外し、実際のオス/メス差はCONFLICTを保持。同一出現の表記再読取・元値保持を含む28unit、lint/type成功。summary再作成前後の元DB SHA一致を確認。500件収集の完了とは区別。
+
+## Cloud Data Handoff（追加スコープ、2026-10-27）
+- CH-1: COMPLETED — ユーザー指定の既存クラウドchatへ画像なし構造化snapshotを引継ぎ。非公開hagmit/dderby-dataの固定commit 79ab83298aacdbe40f70f0713ec98043c8146505を使用。41分割のSHA/サイズ、2,634,143 bytes ZIPのSHA/CRC、同梱ファイル、SQLite整合性・件数を移行先でread-only検証済み。14動画/133imports/6590項目（NULL・再読取を含む）/検証済み5レースを継承し、全編完了動画は0。画像本体の再検証とは区別する。
+- CH-2: COMPLETED — 画像790ファイル/733unique SHAは元PCに不変保管。画像索引・読取JSON・キュー・運用条件を移行先に保存し、画像が必要な作業はSOURCE_IMAGE_REQUIREDとして必要分のみ後送。元PCとsnapshotのDB内容はschema/全行一致を確認。SQLite backupのファイルheader差をデータ差と扱わない。
+- CH-3: BLOCKED — クラウドchatにYouTubeブラウザ/CUA機能がなく、新規画面取得は未再開。構造化データの受渡し完了と継続収集の稼働を区別する。ローカル収集と旧scheduleは停止し、二重書込を避ける。500件の目標は5/500のまま未完了。
+- CH-4: COMPLETED — 日次報告を移行先の既存chatに1件登録し有効状態を確認。設定上の初回は2026-10-28 09:00 Asia/Tokyo、以後毎日9時。workspace永続性を仮定せず、private GitHubのcurrent-snapshot.jsonとreporting/daily-report-state.jsonを再開元とし、必要時にsnapshotを復元してread-only確認する。10/27の報告済み状態を継承。次回実行時刻APIはnullのため、初回時刻は保存済みscheduleによる確認であり実行成功を先取りしない。
