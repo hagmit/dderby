@@ -13,6 +13,7 @@ STABLE_FIELDS = {
     "horse_name", "rank", "rank_star_count", "sex", "running_style",
     "speed_fill_ratio", "power_fill_ratio", "stamina_fill_ratio",
 }
+SEX_LABELS = {"♂": "オス", "♀": "メス"}
 
 
 def canonical(value: Any) -> str:
@@ -122,8 +123,12 @@ def summarize(db: sqlite3.Connection) -> dict[str, Any]:
                 fields[field] = {"status": "NOT_OBSERVED", "values": []}
                 continue
             values: dict[str, set[str]] = {}
+            observed_raw_values = {row["value_json"] for row in rows}
             for row in rows:
-                values.setdefault(row["value_json"], set()).add(row["appearance_id"])
+                value = json.loads(row["value_json"])
+                if field == "sex" and isinstance(value, str):
+                    value = SEX_LABELS.get(value, value)
+                values.setdefault(canonical(value), set()).add(row["appearance_id"])
             appearances = {r["appearance_id"] for r in rows}
             status = "CONFLICT" if len(values) > 1 else (
                 "REPEATED_CONSISTENT" if len(appearances) > 1 else "SINGLE_APPEARANCE"
@@ -135,6 +140,11 @@ def summarize(db: sqlite3.Connection) -> dict[str, Any]:
                            for value, ids in sorted(values.items())],
                 "observation_ids": [r["observation_id"] for r in rows],
             }
+            if field == "sex":
+                fields[field]["comparison_normalization"] = "sex_labels_v1"
+                fields[field]["observed_raw_values"] = [
+                    json.loads(value) for value in sorted(observed_raw_values)
+                ]
         candidates[name] = {
             "identity_status": "EXACT_NAME_CANDIDATE_ONLY",
             "fixed_status": "CONFLICT" if any(f["status"] == "CONFLICT"

@@ -200,8 +200,8 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - 詳細と実再開点はsibling observation-ledger/evidence/*-deep001 とprocessing-queue.json。連続区間の完了は宣言しない。
 
 ## 500 Race Collection（追加スコープ）
-- R500-1: IN_PROGRESS — 初回監査は41候補/0件。独立画像レビューでFQの2件、実払戻票の厳密導出でr7の1件を登録し現在3/500。部分観測53importsはそのまま保持。
-- R500-2: IN_PROGRESS — 次はFQ6S0vUh_NMの420–470秒。最初の2件は馬番/馬名、複数odds、購入票→払戻票、station/credit/背景を照合。元動画が無編集という保証はしない。
+- R500-1: IN_PROGRESS — 独立画像レビューでFQの3件、実払戻票の厳密導出でr7の1件を登録し現在4/500。部分観測は別途保持し、項目数を完成レース数に加算しない。
+- R500-2: IN_PROGRESS — FQ6S0vUh_NMの420–470秒も登録済み。次はIY1rJk8HJtEの362秒払戻に対応する事前6頭oddsの欠測を重点確認。最初の2件は馬番/馬名、複数odds、購入票→払戻票、station/credit/背景を照合。元動画が無編集という保証はしない。
 - R500-3: IN_PROGRESS — 他投稿者2チャンネルを許諾確認候補として提示済み。許諾はユーザー取得待ち。許諾済みソースは継続する。
 - R500-4: BLOCKED — IY1rJk8HJtEの投稿者/シリーズは確認したが、停止72秒でスクショ取得2回タイムアウト。画像・項目の追加0。先行動画の完成度監査へ切替。
 - 監査詳細はsibling observation-ledger/race-readiness-audit.json/.md、進捗はrace-progress.json。部分観測DBは保持し、本番Phase9の完成とは区別する。
@@ -209,3 +209,14 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - R500-5: COMPLETED — 局所verified registry、SHA/時計/6頭/odds/位相/結果/複数根拠/重複拒否/追記専用を実装。19unit、lint/type、実画像2件登録/再登録0/DB整合性okを確認。仕様はdocs/VERIFIED_RACES.md。500件の収集と本番Phase9全体は未完了。
 - R500-6: COMPLETED — 同一実払戻パネルの単勝+馬連から着順を一意に導出する型を追加。WIN CHANCE/未払戻/選択不整合/根拠不足を拒否。24unit/lint/type成功。r7の295–335秒を2→4として追加し、現在3/500、再登録追加0、DB整合性ok。
 - R500-7: BLOCKED — 残り497件は追加画面取得が必要。ブラウザURLを安全に確認できずComputer Useが停止し、複数のgoal継続でも復旧なし。保存済みqnf/r7/OOの完成度監査と取り込み可能な候補の処理を実施済み。ユーザーによるブラウザ接続復旧が必要。他投稿者は許諾確認待ち。未完了を達成扱いにしない。
+
+- R500-8: IN_PROGRESS — ユーザーの「続き」でChrome接続を再確認し、URL/画像の照合が成功して取得停止を解消。FQ追加11地点で420–470秒を登録し再登録追加0。IYは全体の疎な走査と重点取得を行い、部分情報を先に保存。562–595秒はWIN CHANCEと実払戻を区別し、4/6の着順が未確定のためHOLD。旧R500-4/7は停止当時の履歴で、現在はprocessing-queue.jsonを正とする。DB整合性ok、500件目標は未完了。
+
+- R500-9: IN_PROGRESS — 未解析atvVcIDscuc/Eyp7yBAtA8oを2担当で並列検証。画面取得は直列化し62/67枚を証跡保存、25packet/1440項目（NULL・再読取を含む）を追加。atv170–230秒は親の画像照合後に実払戻票から1→3を登録し計5/500、再登録追加0。Eyp439–490秒は着順導出と事前対応を区別しリンク不足でHOLD。全編解析完了は0本のまま。
+- MV-5: IN_PROGRESS — ユーザーの追加許諾でたかたかchannelを承認スコープへ追加。タイトルに「みんなでダービー2」を含む公開6本をブラウザDOMで確認し分析キューへ登録。みんダビ王等の未許諾ソースは処理しない。
+
+- MV-6: IN_PROGRESS — 追加承認のたかたかchannel6本はすべて画像保存に着手。part1〜4の部分観測と短いmontageの市場を別枠保存。yrYの初期15枚＋後半42枚を時計/SHA照合し、実払戻馬単6→2もrawで保存したが事前対応の第3根拠不足でHOLD。今回3batch/15packet/930項目を追加、再登録0・DB整合性ok。500件目標は5件のまま。追加取得320秒は同一タブで2回画像timeoutのためbounded retry停止。未許諾チャンネル探索は新規一次確認0、二次索引leadのみ保留保存。
+
+- MV-7: IN_PROGRESS — fwAHVINOS0Aを全長の56地点＋重点12地点で取得し、前後半を2担当で並列レビュー。18packet/603項目を先行保存、同入力再登録0・DB整合性ok。440–480秒は明示結果と馬単odds一致を確認したが、6頭事前単勝盤が画角外で437–441秒の精査でも不足、HOLD。結果のみの720/800/820等は別候補に保持し、完成5/500を増やさない。Tab.screenshotのtimeout時、URL照合可能な同一タブの文書化されたTab.getScreenshotで画面・時計を確認し取得成功。別投稿者kodomoyoのExpo2025版1本を一次metadata確認し許諾pending登録、再生解析は未着手。クラウド引継ぎ一式はローカル準備済み、宛先確認/転送/切替は未完了。
+
+- PO-7: COMPLETED — 性別の比較summaryで♂/オス・♀/メスだけを同義として正規化。原DB/payload/SHA・出現キーは保持し、summaryに元表記と正規化版を明記。従来の性別表記差7件を矛盾から除外し、実際のオス/メス差はCONFLICTを保持。同一出現の表記再読取・元値保持を含む28unit、lint/type成功。summary再作成前後の元DB SHA一致を確認。500件収集の完了とは区別。

@@ -45,3 +45,6 @@ daily-report-state.jsonで報告済み日付と前回件数を管理し、同日
 同じ画像の複製はSHA256で重複排除して画像数を数える。
 閲覧用CSV/summary/statusは `python scripts/export_observation_ledger.py --directory ../observation-ledger` で更新する。
 GCP課金設定・有料API・ストリーム直接取得は行わない。
+
+## 追加承認スコープ
+ユーザーがたかたかchannel（@たかたかchannel）の許諾取得済みと明示。公開動画のうち、NFKC正規化したタイトルに「みんなでダービー2」を含むものだけを追加対象とする。初回6本の投稿者・タイトルはブラウザDOMで確認済み。動画取得前にも動画別に投稿者とシリーズを確認する。キューのapproved_channel_scopesとvideo-inventory/takataka-candidates.jsonを参照し、未承認投稿者へ広げない。

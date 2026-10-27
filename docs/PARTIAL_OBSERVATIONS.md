@@ -41,3 +41,10 @@ DBと画像evidenceを一緒にバックアップし、Gitには含めない。�
 condition=普通を別の追加観測として保存。gaugeや未表示属性はNULLのまま。
 同じ画像の再読取であり、新しい出現とは数えない。
 レースはANALYSIS_EXCLUDEDのまま、蓄積状態は保存済み。Golden正解や学習用確定値にはしない。
+
+## 性別の比較表記
+ユーザー指定の♂=オス、♀=メスをsummaryの比較時だけ正規化する。
+元DBのvalue_json・payload・証跡記号は変更しない。比較summaryのsexには
+comparison_normalization=sex_labels_v1とobserved_raw_valuesを残す。
+表記だけが異なる同義値をCONFLICTへ昇格させず、オスとメスの実際の不一致はCONFLICTとして残す。
+同一出現の記号／表示名の再読取は引き続き1出現で、固定性の確定根拠にはしない。

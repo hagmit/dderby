@@ -1,5 +1,6 @@
 """Synthetic observations test preservation and independent-occurrence comparisons."""
 from copy import deepcopy
+import json
 from pathlib import Path
 import sqlite3
 from typing import Any
@@ -108,6 +109,44 @@ def test_new_appearances_compare_without_overwriting_and_dynamic_odds_are_not_fi
     horse = summarize(db)["candidate_horses"]["synthetic horse"]
     assert horse["fixed_status"] == "CONFLICT"
     assert {v["value"] for v in horse["fields"]["rank"]["values"]} == {"A", "F"}
+
+
+@pytest.mark.parametrize(("first", "second", "status", "compared"), [
+    ("♂", "オス", "REPEATED_CONSISTENT", {"オス"}),
+    ("♀", "メス", "REPEATED_CONSISTENT", {"メス"}),
+    ("♂", "メス", "CONFLICT", {"オス", "メス"}),
+])
+def test_sex_comparison_handles_labels_without_rewriting_source(
+    tmp_path: Path, first: str, second: str, status: str, compared: set[str],
+) -> None:
+    db = connect(tmp_path / "observations.sqlite3")
+    for video, sex in [("video1", first), ("video2", second)]:
+        payload, manifest = sample(video, video + "race")
+        payload["horses"][0]["sex"] = {**payload["horses"][0]["rank"], "value": sex}
+        ingest(db, payload, manifest)
+    horse = summarize(db)["candidate_horses"]["synthetic horse"]
+    sex_field = horse["fields"]["sex"]
+    assert sex_field["status"] == status
+    assert sex_field["independent_appearance_count"] == 2
+    assert {v["value"] for v in sex_field["values"]} == compared
+    assert set(sex_field["observed_raw_values"]) == {first, second}
+    assert horse["fixed_status"] == ("CONFLICT" if status == "CONFLICT" else "UNVERIFIED")
+    raw = db.execute("SELECT value_json FROM observations WHERE field_name='sex'").fetchall()
+    assert {json.loads(row[0]) for row in raw} == {first, second}
+
+
+def test_sex_label_reread_does_not_create_a_second_appearance(tmp_path: Path) -> None:
+    db = connect(tmp_path / "observations.sqlite3")
+    payload, manifest = sample()
+    payload["horses"][0]["sex"] = {**payload["horses"][0]["rank"], "value": "♂"}
+    ingest(db, payload, manifest)
+    reread = deepcopy(payload)
+    reread["horses"][0]["sex"]["value"] = "オス"
+    ingest(db, reread, manifest)
+    sex = summarize(db)["candidate_horses"]["synthetic horse"]["fields"]["sex"]
+    assert sex["status"] == "SINGLE_APPEARANCE"
+    assert sex["independent_appearance_count"] == 1
+    assert sex["values"] == [{"value": "オス", "appearance_count": 1}]
 
 
 @pytest.mark.parametrize("bad", ["permission", "series", "lineage"])
