@@ -33,3 +33,9 @@ python -m frame_extractor.youtube_capture --video-id <ID> --seconds 335 350 \
 - 2026-10-28のクラウド環境では www.youtube.com への接続がegress policyで拒否（ERR_TUNNEL_CONNECTION_FAILED）。
   実YouTubeでの再生・撮影は未検証。環境のNetwork accessで youtube.com 系の許可が必要。
 - 許可後も最初は1動画1地点・120秒以内で試し、画像と時計を確認してから範囲を広げる。
+- 2026-10-28 ユーザーが www.youtube.com / i.ytimg.com / *.googlevideo.com を許可。atvVcIDscuc 335秒で2回試行し撮影0枚。
+  - watchページへの要求の約半数が `https://www.google.com/sorry/...`（Googleの自動アクセス確認）へ302転送された。
+    クラウドのIPからの自動アクセスと判定されたとみられる。確認画面は突破・迂回しない。
+  - ページが開けた回もplayerが動画情報を返さず `VIDEO_MISMATCH` で停止（安全側）。
+  - 映像配信の `rr*.c.youtube.com` はnetwork policyで拒否（www.youtube.com のみ許可のため）。
+  - 結論: この環境のIPではYouTubeの自動確認が出るため、クラウドだけでの安定取得は未達。
