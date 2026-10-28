@@ -336,6 +336,8 @@ def launch_options() -> dict[str, Any]:
     options: dict[str, Any] = {"headless": True, "args": ["--no-sandbox"]}
     if os.environ.get("DDERBY_CHROMIUM"):
         options["executable_path"] = os.environ["DDERBY_CHROMIUM"]
+    elif os.environ.get("DDERBY_BROWSER_CHANNEL"):  # e.g. "chrome": an installed Google Chrome
+        options["channel"] = os.environ["DDERBY_BROWSER_CHANNEL"]
     proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
     if proxy:
         parsed = urlparse(proxy)
@@ -345,6 +347,23 @@ def launch_options() -> dict[str, Any]:
             options["proxy"].update(username=unquote(parsed.username),
                                     password=unquote(parsed.password or ""))
     return options
+
+
+def _group_options() -> dict[str, Any]:
+    """Start the child in its own process group so it and its browser can be killed together."""
+    if sys.platform == "win32":
+        return {"creationflags": getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)}
+    return {"start_new_session": True}
+
+
+def _kill_group(child: subprocess.Popen[bytes]) -> None:
+    if sys.platform == "win32":  # taskkill /T also ends the Chromium processes the child started
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(child.pid)], check=False,
+                       capture_output=True)
+        if child.poll() is None:
+            child.kill()
+    else:
+        os.killpg(child.pid, signal.SIGKILL)
 
 
 def _run_child(args: argparse.Namespace) -> dict[str, Any]:
@@ -385,7 +404,7 @@ def main() -> None:
         return
     # Supervisor: the child (and its Chromium) is killed at budget + grace, whatever it is doing.
     child = subprocess.Popen([sys.executable, "-m", "frame_extractor.youtube_capture",
-                              *sys.argv[1:], "--child"], start_new_session=True)
+                              *sys.argv[1:], "--child"], **_group_options())
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))  # run the cleanup below
     code: int | None = None
     try:
@@ -394,7 +413,7 @@ def main() -> None:
         code = None
     finally:  # timeout, Ctrl-C or SIGTERM to the supervisor: never leave Chromium behind
         if child.poll() is None:
-            os.killpg(child.pid, signal.SIGKILL)
+            _kill_group(child)
             child.wait()
         # Covers a killed or crashed child too; no-op when the child wrote its manifest.
         written = write_watchdog_manifest(args.out_dir, args.video_id, args.batch_id, args.seconds)

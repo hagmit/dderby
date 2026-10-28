@@ -12,6 +12,15 @@ python -m frame_extractor.youtube_capture --video-id <ID> --seconds 335 350 \
 ```
 `HTTPS_PROXY` があればChromiumのproxyに渡す。TLS検証は無効化しない。
 
+Windows PC（PowerShell）では、インストール済みのGoogle Chromeを使える:
+```powershell
+py -3.12 -m venv .venv; .\.venv\Scripts\pip install -e '.[capture]'
+$env:DDERBY_BROWSER_CHANNEL = "chrome"
+.\.venv\Scripts\python -m frame_extractor.youtube_capture --video-id <ID> --seconds 335 `
+  --out-dir ..\capture-evidence --batch-id <一意のbatch> --budget-seconds 120
+```
+強制終了はWindowsでは `taskkill /T` で子とブラウザをまとめて止める。
+
 ## 守ること（コードで強制）
 - 通常のwatchページのplayerだけを操作し、`#movie_player` の領域だけを撮る（ブラウザUIは含めない）。
 - 開いた後のURLのvideo ID、playerの `getVideoData().video_id`、投稿者handleを照合。
