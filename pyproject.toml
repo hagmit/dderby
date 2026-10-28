@@ -11,6 +11,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest==8.4.2", "ruff==0.14.2", "mypy==1.18.2"]
+capture = ["playwright==1.63.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -25,3 +26,8 @@ python_version = "3.12"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[[tool.mypy.overrides]]
+# Optional `capture` extra; CI type-checks without it installed.
+module = ["playwright", "playwright.*"]
+ignore_missing_imports = true
