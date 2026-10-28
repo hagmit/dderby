@@ -26,3 +26,8 @@ python_version = "3.12"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[[tool.mypy.overrides]]
+# Optional `capture` extra; CI type-checks without it installed.
+module = ["playwright", "playwright.*"]
+ignore_missing_imports = true
