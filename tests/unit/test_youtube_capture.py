@@ -151,3 +151,10 @@ def test_watchdog_indexes_orphan_images_as_audit_only(tmp_path: Path) -> None:
     assert manifest is not None and manifest["status"] == "CAPTURE_UNAVAILABLE"
     assert manifest["frames"][0]["quality_status"] == "CAPTURE_AUDIT_ONLY"
     assert write_watchdog_manifest(tmp_path, VIDEO, "b9", [140.0]) is None
+
+
+def test_manifest_is_never_overwritten_or_left_partial(tmp_path: Path) -> None:
+    run(FakePlayer(), tmp_path, [140.0])
+    batch = tmp_path / f"{VIDEO}-b001"
+    assert sorted(p.name for p in batch.iterdir()) == ["manifest.json", "raw"]
+    assert write_watchdog_manifest(tmp_path, VIDEO, "b001", [140.0]) is None

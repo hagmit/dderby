@@ -188,8 +188,13 @@ def capture(player: Player, video_id: str, seconds: list[float], out_dir: Path, 
 def _write_manifest(batch: Path, manifest: dict[str, Any]) -> None:
     accepted = [f for f in manifest["frames"] if f["quality_status"] == "CAPTURED_PENDING_REVIEW"]
     manifest["status"] = "CAPTURED_PENDING_REVIEW" if accepted else "CAPTURE_UNAVAILABLE"
-    with (batch / "manifest.json").open("x", encoding="utf-8") as handle:
-        json.dump(manifest, handle, ensure_ascii=False, indent=2)
+    # Write aside, then hard-link into place: never a partial or overwritten manifest.
+    temp = batch / f".manifest.{os.getpid()}.tmp"
+    temp.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    try:
+        os.link(temp, batch / "manifest.json")
+    finally:
+        temp.unlink()
 
 
 def _capture_point(player: Player, video_id: str, batch: Path, batch_id: str, seq: int,
@@ -250,7 +255,8 @@ def write_watchdog_manifest(out_dir: Path, video_id: str, batch_id: str,
     manifest = {"schema_version": 1, "video_id": video_id, "batch_id": batch_id,
                 "method": "local_chromium_watch_page_screenshot", "stream_downloaded": False,
                 "requested_seconds": seconds, "frames": frames, "not_attempted_seconds": [],
-                "refused": "WATCHDOG_TIMEOUT", "refused_detail": "capture process killed"}
+                "refused": "WATCHDOG_TIMEOUT",
+                "refused_detail": "capture process killed or exited without a manifest"}
     _write_manifest(batch, manifest)
     return manifest
 
@@ -380,16 +386,24 @@ def main() -> None:
     # Supervisor: the child (and its Chromium) is killed at budget + grace, whatever it is doing.
     child = subprocess.Popen([sys.executable, "-m", "frame_extractor.youtube_capture",
                               *sys.argv[1:], "--child"], start_new_session=True)
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))  # run the cleanup below
+    code: int | None = None
     try:
-        sys.exit(child.wait(timeout=args.budget_seconds + WATCHDOG_GRACE))
+        code = child.wait(timeout=args.budget_seconds + WATCHDOG_GRACE)
     except subprocess.TimeoutExpired:
-        os.killpg(child.pid, signal.SIGKILL)
-        child.wait()
+        code = None
+    finally:  # timeout, Ctrl-C or SIGTERM to the supervisor: never leave Chromium behind
+        if child.poll() is None:
+            os.killpg(child.pid, signal.SIGKILL)
+            child.wait()
+        # Covers a killed or crashed child too; no-op when the child wrote its manifest.
         written = write_watchdog_manifest(args.out_dir, args.video_id, args.batch_id, args.seconds)
-        print(json.dumps({"status": "CAPTURE_UNAVAILABLE", "refused": "WATCHDOG_TIMEOUT",
+    if code is None or written is not None:
+        print(json.dumps({"status": "CAPTURE_UNAVAILABLE", "refused": "WATCHDOG_TIMEOUT"
+                          if code is None else "CHILD_FAILED", "child_exit": code,
                           "manifest_written": written is not None}))
         sys.exit(2)
-
+    sys.exit(code)
 
 if __name__ == "__main__":
     main()
