@@ -226,3 +226,6 @@ Pub/Sub は pull 型。定期起動する各 Cloud Run Job が queue を pull �
 - CH-2: COMPLETED — 画像790ファイル/733unique SHAは元PCに不変保管。画像索引・読取JSON・キュー・運用条件を移行先に保存し、画像が必要な作業はSOURCE_IMAGE_REQUIREDとして必要分のみ後送。元PCとsnapshotのDB内容はschema/全行一致を確認。SQLite backupのファイルheader差をデータ差と扱わない。
 - CH-3: BLOCKED — クラウドchatにYouTubeブラウザ/CUA機能がなく、新規画面取得は未再開。構造化データの受渡し完了と継続収集の稼働を区別する。ローカル収集と旧scheduleは停止し、二重書込を避ける。500件の目標は5/500のまま未完了。
 - CH-4: COMPLETED — 日次報告を移行先の既存chatに1件登録し有効状態を確認。設定上の初回は2026-10-28 09:00 Asia/Tokyo、以後毎日9時。workspace永続性を仮定せず、private GitHubのcurrent-snapshot.jsonとreporting/daily-report-state.jsonを再開元とし、必要時にsnapshotを復元してread-only確認する。10/27の報告済み状態を継承。次回実行時刻APIはnullのため、初回時刻は保存済みscheduleによる確認であり実行成功を先取りしない。
+- AN-1: IN_PROGRESS — 必要レース数を試算（単勝の払戻率は検証済み5レースで約74%）。段階1（オッズ帯ごとの較正）は人気帯で約50〜75レース、全帯で数百〜千超。勝ち筋の確認は回収率+20%で約330レース、+10%で約1300レースのアウトオブサンプルが必要。
+- AN-2: IN_PROGRESS — 段階1用に2着を任意とする単勝区分 `win_races` を追加（docs/WIN_TIER.md）。検証済みと同じ共通検査を `check_common` に切り出し、検証済みの判定は不変（既存テスト通過）。払戻済み単勝票による1着の導出、検証済みとの重複拒否、結合データの書出し。撮影リスト `scripts/build_capture_plan.py` は現DBで結果待ち17件・オッズ待ち21件・未撮影区間のある動画5本を出力。登録0、完成5/500のまま。
+
