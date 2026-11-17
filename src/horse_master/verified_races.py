@@ -2,19 +2,30 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import hashlib
 import json
 from pathlib import Path
 import sqlite3
-from typing import Any
+from typing import Any, Callable
 
 from horse_master.observation_store import canonical, digest
 
 
-def register(
-    db: sqlite3.Connection, record: dict[str, Any], manifest: dict[str, Any], root: Path,
-) -> bool:
-    """Check lineage and minimum race evidence before an append-only registration.
+@dataclass(frozen=True)
+class Checked:
+    """Facts shared by every race registry once the common evidence checks passed."""
+
+    video: str
+    frames: dict[str, dict[str, Any]]
+    numbers: list[int]
+    field: Callable[[dict[str, Any]], Any]
+    pre_times: list[float]
+    result_times: list[float]
+
+
+def check_common(record: dict[str, Any], manifest: dict[str, Any], root: Path) -> Checked:
+    """Lineage, six pre-race win odds, reviewed BET→RESULT link, phases and duplicate review.
 
     Visual linkage is a review decision with written anchors, not an automatic
     inference from nearby timestamps. Unknown horse names/abilities stay optional.
@@ -58,40 +69,6 @@ def register(
             raise ValueError("Pre-race odds reference a non-BET frame")
         if isinstance(odds, bool) or not isinstance(odds, (int, float)) or odds < 1:
             raise ValueError("Invalid win odds")
-    first = field(record["result"]["first_place"])
-    second = field(record["result"]["second_place"])
-    if type(first) is not int or type(second) is not int or (
-        first not in numbers or second not in numbers or first == second
-    ):
-        raise ValueError("Invalid ordered result")
-    for place in ["first_place", "second_place"]:
-        if not set(record["result"][place]["source_frame_ids"]) <= set(
-            record["confirmed_result_frame_ids"]
-        ):
-            raise ValueError("Result references a non-result frame")
-    # Two paid tickets on the same result panel can prove an ordered pair exactly:
-    # a winning single identifies first place; a winning quinella identifies both.
-    # This path must preserve the raw ticket facts and the explicit derivation.
-    if record["result"].get("evidence_kind") == "PAID_WIN_PLUS_QUINELLA":
-        tickets = record["result"]["paid_tickets"]
-        common = set(record["confirmed_result_frame_ids"])
-        for kind in ["win", "quinella"]:
-            ticket = tickets[kind]
-            if field(ticket["display_kind"]) != "WINNING TICKET":
-                raise ValueError("Potential WIN CHANCE is not a paid result")
-            if field(ticket["bet_type"]) != kind:
-                raise ValueError("Paid ticket type mismatch")
-            paid = field(ticket["paid_medals"])
-            if isinstance(paid, bool) or not isinstance(paid, (int, float)) or paid <= 0:
-                raise ValueError("Ticket must have positive actual payout")
-            for key in ["display_kind", "bet_type", "selection", "paid_medals"]:
-                common &= set(ticket[key]["source_frame_ids"])
-        win_selection = field(tickets["win"]["selection"])
-        pair = field(tickets["quinella"]["selection"])
-        if win_selection != [first] or sorted(pair) != sorted([first, second]):
-            raise ValueError("Paid tickets do not prove recorded order")
-        if not common or not record["result"].get("derivation"):
-            raise ValueError("Paid facts need common result panel and derivation")
     linkage = record["linkage"]
     if linkage.get("status") != "VERIFIED" or not linkage.get("reviewer"):
         raise ValueError("BET to RESULT link not reviewed")
@@ -118,47 +95,105 @@ def register(
         raise ValueError("Pre-race evidence must precede confirmed result")
     if not record.get("duplicate_review", {}).get("reviewed"):
         raise ValueError("Duplicate review missing")
+    return Checked(video, frames, numbers, field, pre_times, result_times)
+
+
+def check_paid_ticket(record: dict[str, Any], checked: Checked, kind: str) -> set[str]:
+    """A WINNING TICKET row with a positive actual payout; returns its common frames."""
+    ticket = record["result"]["paid_tickets"][kind]
+    field = checked.field
+    if field(ticket["display_kind"]) != "WINNING TICKET":
+        raise ValueError("Potential WIN CHANCE is not a paid result")
+    if field(ticket["bet_type"]) != kind:
+        raise ValueError("Paid ticket type mismatch")
+    paid = field(ticket["paid_medals"])
+    if isinstance(paid, bool) or not isinstance(paid, (int, float)) or paid <= 0:
+        raise ValueError("Ticket must have positive actual payout")
+    common = set(record["confirmed_result_frame_ids"])
+    for key in ["display_kind", "bet_type", "selection", "paid_medals"]:
+        common &= set(ticket[key]["source_frame_ids"])
+    return common
+
+
+def append_race(db: sqlite3.Connection, table: str, record: dict[str, Any],
+                manifest: dict[str, Any], checked: Checked) -> bool:
+    """Append-only, idempotent insert into ``table`` and its ``{table[:-1]}_images`` index."""
+    images = f"{table[:-1]}_images"
     candidate = record["candidate_race_id"]
-    key = digest([record["series"], video, candidate])
+    key = digest([record["series"], checked.video, candidate])
     content = canonical([record, manifest])
-    start, end = min(pre_times), max(result_times)
-    db.executescript("""
-        CREATE TABLE IF NOT EXISTS verified_races (
+    start, end = min(checked.pre_times), max(checked.result_times)
+    db.executescript(f"""
+        CREATE TABLE IF NOT EXISTS {table} (
           race_key TEXT PRIMARY KEY, video_id TEXT NOT NULL, candidate_race_id TEXT NOT NULL,
           start_seconds REAL NOT NULL, end_seconds REAL NOT NULL,
           record_json TEXT NOT NULL, manifest_json TEXT NOT NULL, content_hash TEXT NOT NULL,
           created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
-        CREATE TABLE IF NOT EXISTS verified_race_images (
-          image_sha256 TEXT NOT NULL, race_key TEXT NOT NULL REFERENCES verified_races(race_key),
+        CREATE TABLE IF NOT EXISTS {images} (
+          image_sha256 TEXT NOT NULL, race_key TEXT NOT NULL REFERENCES {table}(race_key),
           PRIMARY KEY(image_sha256, race_key));
     """)
-    for table in ["verified_races", "verified_race_images"]:
+    label = "Verified" if table == "verified_races" else "Race"
+    for name in [table, images]:
         for action in ["UPDATE", "DELETE"]:
-            db.execute(f"CREATE TRIGGER IF NOT EXISTS {table}_no_{action.lower()} "
-                       f"BEFORE {action} ON {table} BEGIN "
-                       "SELECT RAISE(ABORT,'Verified registry is append-only'); END")
-    old = db.execute("SELECT content_hash FROM verified_races WHERE race_key=?", (key,)).fetchone()
+            db.execute(f"CREATE TRIGGER IF NOT EXISTS {name}_no_{action.lower()} "
+                       f"BEFORE {action} ON {name} BEGIN "
+                       f"SELECT RAISE(ABORT,'{label} registry is append-only'); END")
+    old = db.execute(f"SELECT content_hash FROM {table} WHERE race_key=?", (key,)).fetchone()
     content_hash = digest(content)
     if old:
         if old[0] != content_hash:
             raise ValueError("Race key already registered with different content")
         return False
-    if db.execute("SELECT 1 FROM verified_races WHERE video_id=? AND start_seconds<=? "
-                  "AND end_seconds>=?", (video, end, start)).fetchone():
+    if db.execute(f"SELECT 1 FROM {table} WHERE video_id=? AND start_seconds<=? "
+                  "AND end_seconds>=?", (checked.video, end, start)).fetchone():
         raise ValueError("Overlapping video race interval requires identity review")
-    hashes = {frames[i]["image_sha256"] for i in
+    hashes = {checked.frames[i]["image_sha256"] for i in
               record["pre_race_frame_ids"] + record["confirmed_result_frame_ids"]}
     for value in hashes:
-        if db.execute("SELECT 1 FROM verified_race_images WHERE image_sha256=?", (value,)).fetchone():
+        if db.execute(f"SELECT 1 FROM {images} WHERE image_sha256=?", (value,)).fetchone():
             raise ValueError("Evidence image already belongs to a registered race")
     with db:
-        db.execute("INSERT INTO verified_races (race_key,video_id,candidate_race_id,start_seconds,"
+        db.execute(f"INSERT INTO {table} (race_key,video_id,candidate_race_id,start_seconds,"
                    "end_seconds,record_json,manifest_json,content_hash) VALUES (?,?,?,?,?,?,?,?)",
-                   (key, video, candidate, start, end, canonical(record), canonical(manifest),
-                    content_hash))
-        db.executemany("INSERT INTO verified_race_images VALUES (?,?)",
+                   (key, checked.video, candidate, start, end, canonical(record),
+                    canonical(manifest), content_hash))
+        db.executemany(f"INSERT INTO {images} VALUES (?,?)",
                        [(h, key) for h in sorted(hashes)])
     return True
+
+
+def register(
+    db: sqlite3.Connection, record: dict[str, Any], manifest: dict[str, Any], root: Path,
+) -> bool:
+    """Check lineage and minimum race evidence before an append-only registration."""
+    checked = check_common(record, manifest, root)
+    numbers, field = checked.numbers, checked.field
+    first = field(record["result"]["first_place"])
+    second = field(record["result"]["second_place"])
+    if type(first) is not int or type(second) is not int or (
+        first not in numbers or second not in numbers or first == second
+    ):
+        raise ValueError("Invalid ordered result")
+    for place in ["first_place", "second_place"]:
+        if not set(record["result"][place]["source_frame_ids"]) <= set(
+            record["confirmed_result_frame_ids"]
+        ):
+            raise ValueError("Result references a non-result frame")
+    # Two paid tickets on the same result panel can prove an ordered pair exactly:
+    # a winning single identifies first place; a winning quinella identifies both.
+    # This path must preserve the raw ticket facts and the explicit derivation.
+    if record["result"].get("evidence_kind") == "PAID_WIN_PLUS_QUINELLA":
+        tickets = record["result"]["paid_tickets"]
+        common = check_paid_ticket(record, checked, "win") & check_paid_ticket(
+            record, checked, "quinella")
+        win_selection = field(tickets["win"]["selection"])
+        pair = field(tickets["quinella"]["selection"])
+        if win_selection != [first] or sorted(pair) != sorted([first, second]):
+            raise ValueError("Paid tickets do not prove recorded order")
+        if not common or not record["result"].get("derivation"):
+            raise ValueError("Paid facts need common result panel and derivation")
+    return append_race(db, "verified_races", record, manifest, checked)
 
 
 def progress(db: sqlite3.Connection, target: int = 500) -> dict[str, Any]:
